@@ -14,8 +14,12 @@ return [
     */
 
     'defaults' => [
-        'guard' => 'web',
-        'passwords' => 'users',
+        // 'guard' => 'web',
+        // 'passwords' => 'users',
+
+        // JWT INSTALL
+        'guard' => 'api',
+        'passwords' => 'jwt_users',
     ],
 
     /*
@@ -36,9 +40,16 @@ return [
     */
 
     'guards' => [
-        'web' => [
-            'driver' => 'session',
-            'provider' => 'users',
+        // 'web' => [
+        //     'driver' => 'session',
+        //     'provider' => 'users',
+        // ],
+
+
+        // JWT-INSTALL
+        'api' => [
+            'driver' => 'jwt', // Set the driver to jwt
+            'provider' => 'jwt_users', // Set a separate provider for JWT guard
         ],
     ],
 
@@ -60,10 +71,17 @@ return [
     */
 
     'providers' => [
-        'users' => [
+        // 'users' => [
+        //     'driver' => 'eloquent',
+        //     'model' => App\Models\User::class,
+        // ],
+
+        // JWT INSTALL
+        'jwt_users' => [ // Add a new provider for the JWT guard
             'driver' => 'eloquent',
-            'model' => App\Models\User::class,
+            'model' => App\Models\UsersUserIdModel::class,
         ],
+
 
         // 'users' => [
         //     'driver' => 'database',
@@ -91,9 +109,18 @@ return [
     */
 
     'passwords' => [
-        'users' => [
-            'provider' => 'users',
-            'table' => 'password_reset_tokens',
+        // 'users' => [
+        //     'provider' => 'users',
+        //     'table' => 'password_reset_tokens',
+        //     'expire' => 60,
+        //     'throttle' => 60,
+        // ],
+
+
+        // JWT-INSTALL
+        'jwt_users' => [
+            'provider' => 'jwt_users', // Use the correct provider for JWT users
+            'table' => 'password_reset_tokens', // Update the table name if necessary
             'expire' => 60,
             'throttle' => 60,
         ],
