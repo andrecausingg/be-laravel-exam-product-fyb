@@ -649,7 +649,6 @@ class ProductController extends Controller
             ], Response::HTTP_UNPROCESSABLE_ENTITY);
         }
 
-
         try {
             $products_model = new ProductModel;
             $number_user_id = $auth->number_user_id;
@@ -852,7 +851,7 @@ class ProductController extends Controller
             }
         }
     }
-
+    
     public function destroyProduct(Request $request, $id)
     {
         $global_payload_error = null;

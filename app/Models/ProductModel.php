@@ -175,27 +175,39 @@ class ProductModel extends Model
         $prefix = 'product/';
 
         $payload = [
+            "view" => [],
             "update" => [
                 'image',
                 'name',
                 'price'
-            ]
+            ],
+            "destroy" => []
         ];
 
         $method = [
+            "view" => "GET",
             'update' => "PUT",
+            'destroy' => "DELETE",
         ];
         $button_name = [
+            'view' =>  "View product",
             'update' =>  "Update product",
+            'destroy' =>  "Delete product",
         ];
         $icon = [
-            'update' => "IconCashRegister",
+            'view' =>  "IconEye",
+            'update' => "IconEdit",
+            'destroy' =>  "IconTrash",
         ];
         $container = [
-            'update' => "page",
+            'view' => "modal",
+            'update' => "modal",
+            'destroy' => "modal",
         ];
         $details = [
+            'view' => $this->arrFormFieldsUpdateProduct(),
             'update' => $this->arrFormFieldsUpdateProduct(),
+            'destroy' => $this->arrFormFieldsUpdateProduct(),
         ];
 
         return compact('prefix', 'payload',  'method', 'button_name', 'icon', 'container', 'details');
@@ -390,6 +402,7 @@ class ProductModel extends Model
     public function arrButtonNameIndex(): array
     {
         return [
+            'View product',
             'Update product',
             'Delete product'
         ];

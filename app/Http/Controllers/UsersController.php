@@ -36,6 +36,145 @@ class UsersController extends Controller
         $this->fill_attr_gaf_model = $fill_attr_gaf_model;
     }
 
+    public function me(Request $request)
+    {
+        $global_payload_error = null;
+        $arr_container_datas = [];
+        $arr_all_data = [];
+        $number_user_id = null;
+        $uuid_user_id = null;
+
+        $logs_details_function = $this->fill_attr_user_model->indexMeLogs();
+
+        // Authorize the user
+        $auth = $this->helper->authorizeUser(
+            $request,
+            $this->fill_attr_user_model->viewMeAllowedRole()
+        );
+        if (empty($auth->uuid_user_id)) {
+            return response()->json([
+                'title_message' => 'Unauthorized',
+                'message' => 'User is not authenticated.'
+            ], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $number_user_id = $auth->number_user_id;
+        $uuid_user_id = $auth->uuid_user_id;
+
+        // *********************************** //
+        // Start merge header and request body
+        $request_data = $this->helper->mergeHeaderAndRequestBody(
+            $request, // Request Body
+            $this->fill_attr_gaf_model->arrHeaderFields(), // Fields to merge to request body
+        );
+        // End merge header and request body
+        // *********************************** //
+
+        // Validation rules for each item in the array
+        $validator = Validator::make($request_data, []);
+
+        // Check if validation fails
+        if ($validator->fails()) {
+            return response()->json([
+                'title_message' => 'Validation failed',
+                'message' => 'There was an error processing the inputs.',
+                'errors' => $validator->errors(),
+            ], Response::HTTP_UNPROCESSABLE_ENTITY);
+        }
+
+        try {
+            $users_model = new UsersModel();
+
+            $users_model = $users_model
+                ->where('uuid_user_id', $uuid_user_id)
+                ->first();
+            if (!$users_model) {
+                return response()->json([
+                    'title_message' => 'Not found',
+                    'message' => 'User not found'
+                ], Response::HTTP_NOT_FOUND);
+            }
+
+            // Store on array the specific data
+            foreach ($this->fill_attr_user_model->getFillableAttributes() as $getFillableAttribute) {
+                // fields to encrypt
+                if (in_array($getFillableAttribute, $this->fill_attr_user_model->arrToConvertIdsToEncrypted())) {
+                    $arr_container_datas[$getFillableAttribute] = Crypt::encrypt($users_model->$getFillableAttribute);
+                }
+                // fields to decrypt
+                else if (in_array($getFillableAttribute, $this->fill_attr_user_model->arrFieldsToDecrypt())) {
+                    $arr_container_datas[$getFillableAttribute] = $this->helper->isEncrypted($users_model->$getFillableAttribute) ? Crypt::decrypt($users_model->$getFillableAttribute) ?? null : $users_model->$getFillableAttribute ?? null;
+                }
+                // Fields to force int
+                else if (in_array($getFillableAttribute, $this->fill_attr_user_model->arrFieldsToForceInt())) {
+                    $arr_container_datas[$getFillableAttribute] =
+                        !is_int($users_model->$getFillableAttribute)
+                        ? $this->helper->forceConvertToInt($users_model->$getFillableAttribute)
+                        : $users_model->$getFillableAttribute;
+                }
+                // Fields to force float
+                else if (in_array($getFillableAttribute, $this->fill_attr_user_model->arrFieldsToForceFloat())) {
+                    $arr_container_datas[$getFillableAttribute] =
+                        !is_float($users_model->$getFillableAttribute)
+                        ? $this->helper->forceConvertToFloat($users_model->$getFillableAttribute)
+                        : $users_model->$getFillableAttribute;
+                }
+                // fields to convert date and time
+                else if (in_array($getFillableAttribute, $this->fill_attr_user_model->arrToConvertToReadableDateTime())) {
+                    $arr_container_datas[$getFillableAttribute] = $this->helper->convertReadableTimeDate($users_model->$getFillableAttribute);
+                }
+                // just declare
+                else {
+                    $arr_container_datas[$getFillableAttribute] = $users_model->$getFillableAttribute;
+                }
+            }
+
+            // Unset key not needed
+            $this->helper->unsetKeyOnArray(
+                $this->fill_attr_user_model->arrFieldsToUnsetIndex(),
+                $arr_container_datas,
+                null // make it null if no exact key
+            );
+            // End Format the action details
+
+            // Data
+            $arr_all_data[] = $arr_container_datas;
+
+            return response()->json([
+                'title_message' => 'Success',
+                'message' => 'Successfully retrieve me.',
+                'data' => $arr_all_data,
+            ], Response::HTTP_OK);
+        } catch (\Exception $e) {
+            $variable_err_email = VariablesModel::where('function_name', 'isErrorEmail')->first();
+            if ($variable_err_email && $variable_err_email->value == 1) {
+                // Capture the error message
+                $error_mail_data = [
+                    'controller_class_name' => static::class,   // Get the current class name
+                    'function_name' => $logs_details_function['function_name'], // Get function name
+                    'indicator' => $logs_details_function['indicator_catch_error'],
+                    'date' => Carbon::now()->format('F j, Y g:i:s a'), // Formatted date
+                    'payload' => $global_payload_error,
+                    'error_message' => $e->getMessage(), // Capture the exception message
+                    'error_details' => $e->getTraceAsString() // Capture the exception message
+                ];
+
+                // Send the error mail
+                $this->helper->errorMail($error_mail_data);
+            }
+
+            $variable_try_catch = VariablesModel::where('function_name', 'isTryCatch500')->first();
+            if ($variable_try_catch && $variable_try_catch->value == 1) {
+                return response()->json([
+                    'title_message' => 'Error',
+                    'message' => $e->getMessage(),
+                    'error_details' => $e->getTraceAsString(),
+                ], Response::HTTP_INTERNAL_SERVER_ERROR);
+            }
+        }
+    }
+
+
     public function logout(Request $request)
     {
         $global_payload_error = null;

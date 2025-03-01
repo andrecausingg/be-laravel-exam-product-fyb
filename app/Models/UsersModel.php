@@ -14,10 +14,6 @@ class UsersModel extends Model
     protected $primaryKey = 'id';
     protected $fillable = [
         'uuid_user_id',
-
-        'number_created_by_user_id',
-        'uuid_created_by_user_id',
-
         'phone_number',
         'email',
         'password',
@@ -237,6 +233,40 @@ class UsersModel extends Model
                 'start' => 'start-update-inactive-status-and-last-used-at-logout',
                 'end' => 'end-update-inactive-status-and-last-used-at-logout',
             ],
+        ];
+    }
+
+    public function indexMeLogs(): array
+    {
+        return [
+            'function_name' => 'me',
+            'indicator_catch_error' => 'tryCatchOnMe',
+            'users_tbl_log' => [
+                'start' => 'start-get-me',
+                'end' => 'end-get-me',
+                'user_display' => 'get-me',
+            ],
+        ];
+    }
+
+    public function viewMeAllowedRole(): array
+    {
+        return [
+            'super_admin' => env('ROLE_SUPER_ADMIN'),
+        ];
+    }
+
+    public function arrToConvertIdsToEncrypted(): array
+    {
+        return [
+            'uuid_user_id',
+        ];
+    }
+
+    public function arrFieldsToUnsetIndex(): array
+    {
+        return [
+            'uuid_user_id',
         ];
     }
 }

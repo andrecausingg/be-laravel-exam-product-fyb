@@ -29,13 +29,17 @@ Route::middleware(['jwt.auth'])->group(function () {
         Route::group(["prefix" => "auth"], function () {
             Route::post("logout", 'logout');
         });
+
+        Route::group(["prefix" => "user"], function () {
+            Route::get("me", 'me');
+        });
     });
 
     // Product
     Route::controller(ProductController::class)->group(function () {
         Route::group(["prefix" => "product"], function () {
-            Route::post("index", 'indexProduct');
-            Route::post("view/{id}", 'viewProduct');
+            Route::get("index", 'indexProduct');
+            Route::get("view/{id}", 'viewProduct');
             Route::post("store", 'storeProduct');
             Route::put("update/{id}", 'updateProduct');
             Route::delete("destroy/{id}", 'destroyProduct');
