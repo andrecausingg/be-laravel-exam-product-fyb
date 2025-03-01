@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ProductController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UsersController;
@@ -23,9 +24,21 @@ Route::group(["prefix" => "auth"], function () {
 });
 
 Route::middleware(['jwt.auth'])->group(function () {
+    // Auth
     Route::controller(UsersController::class)->group(function () {
         Route::group(["prefix" => "auth"], function () {
             Route::post("logout", 'logout');
+        });
+    });
+
+    // Product
+    Route::controller(ProductController::class)->group(function () {
+        Route::group(["prefix" => "product"], function () {
+            Route::post("index", 'indexProduct');
+            Route::post("view/{id}", 'viewProduct');
+            Route::post("store", 'storeProduct');
+            Route::put("update/{id}", 'updateProduct');
+            Route::delete("destroy/{id}", 'destroyProduct');
         });
     });
 });

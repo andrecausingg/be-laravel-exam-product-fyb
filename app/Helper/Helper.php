@@ -385,7 +385,7 @@ class Helper
         }
     }
 
-  
+
 
     // Format fields data
     public function formatFieldsData(
@@ -574,7 +574,7 @@ class Helper
         return $changes;
     }
 
-  
+
 
     // Unset the fields is empty or null
     public function unsetFieldsIsEmpty($data)
@@ -602,7 +602,7 @@ class Helper
 
 
     // Format the Api return
-    public function formatApi($prefix = '', $payloads = [], $method = '', $button_name = '', $icon = null, $container = '', $details = [])
+    public function formatApi($prefix = '', $payloads = [], $method = '', $button_name = '', $icon = null, $container = '', $details = []): array
     {
 
         $arr_action = [];
@@ -1014,6 +1014,7 @@ class Helper
         $arr_button_names = [],
         $crud_settings,
         $arr_field_with_keys = [],
+        $arr_modified_keys = [],
     ) {
         // Make array values
         if ($key_for_action != '') {
@@ -1062,7 +1063,7 @@ class Helper
                                             'key' => $details['key'] ?? '',
                                             'label' => $details['label'] ?? '',
                                             'type' => $details['type'] ?? 'input',
-                                            'value' => $details['value'] ?? $value ?? '',
+                                            'value' => $this->detectAndConvertType($details['value']) ?? $this->detectAndConvertType($value)  ?? '',
                                             'is_hidden' => $details['is_hidden'] ?? false,
                                             'is_required' => $details['is_required'] ?? false,
                                             'option' => $details['option'] ?? [],
@@ -1072,7 +1073,7 @@ class Helper
                                             'key' => $details['key'] ?? '',
                                             'label' => $details['label'] ?? '',
                                             'type' => $details['type'] ?? 'input',
-                                            'value' => $details['value'] ?? $value ?? '',
+                                            'value' => $this->detectAndConvertType($details['value']) ?? $this->detectAndConvertType($value)  ?? '',
                                             'is_hidden' => $details['is_hidden'] ?? false,
                                             'is_required' => $details['is_required'] ?? false,
                                             'option' => $details['option'] ?? [],
@@ -1085,7 +1086,7 @@ class Helper
                                     'key' => $details['key'] ?? '',
                                     'label' => $details['label'] ?? '',
                                     'type' => $details['type'] ?? 'input',
-                                    'value' => $details['value'] ?? $value ?? '',
+                                    'value' => $this->detectAndConvertType($details['value']) ?? $this->detectAndConvertType($value)  ?? '',
                                     'is_hidden' => $details['is_hidden'] ?? false,
                                     'is_required' => $details['is_required'] ?? false,
                                     'option' => $details['option'] ?? [],
@@ -1115,6 +1116,23 @@ class Helper
         }
     }
 
+    function detectAndConvertType(mixed $value): mixed
+    {
+        if (is_numeric($value)) {
+            return $value + 0; // Convert to int or float
+        }
+
+        if (is_string($value)) {
+            $lower_value = strtolower($value);
+            if ($lower_value === 'true') {
+                return true;
+            } elseif ($lower_value === 'false') {
+                return false;
+            }
+        }
+
+        return $value; // Return as is if no conversion needed
+    }
 
     // Check if value is hash Crypt::encrypt()
     public function isHash($value)
@@ -1130,18 +1148,6 @@ class Helper
         }
 
         return $this->isEncrypted($model->role) ? Crypt::decrypt($model->role) : $model->role;
-    }
-
-    // Remove the sample 0000
-    public function removeSpecificPatterns($inputString)
-    {
-        // Define the regular expression pattern to match exactly #0000 or 0000
-        $pattern = '/(^|\s)(#[0]{4}|[0]{4})(?=\s|$)/';
-
-        // Use preg_replace to remove the matched patterns
-        $result = preg_replace($pattern, '', $inputString);  // Remove the pattern, leave rest intact
-
-        return $result;
     }
 
     public function convertLaravelDbDateTimeParse($date_time = null)
